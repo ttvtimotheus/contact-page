@@ -20,6 +20,9 @@ export async function POST(request: NextRequest) {
     // Get recipient email based on department
     const recipientEmail = DEPARTMENT_EMAILS[department];
 
+    // Initialize Resend with API key
+    const resend = new Resend(process.env.RESEND_API_KEY);
+
     // Send email using Resend
     const emailResponse = await resend.emails.send({
       from: process.env.FROM_EMAIL || "noreply@clarik.app",

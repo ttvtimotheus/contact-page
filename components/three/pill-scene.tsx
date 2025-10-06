@@ -91,6 +91,9 @@ export function PillScene({ className }: PillSceneProps) {
     // Scene
     const scene = new THREE.Scene();
     scene.background = null;
+    
+    // Add fog for depth
+    scene.fog = new THREE.Fog(0x000000, 5, 15);
 
     // Camera
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
@@ -111,21 +114,25 @@ export function PillScene({ className }: PillSceneProps) {
     const pill = createPill();
     scene.add(pill);
 
-    // Lighting setup
-    const keyLight = new THREE.DirectionalLight(0xffffff, 1.5);
-    keyLight.position.set(2, 3, 4);
+    // Lighting setup - softer, more diffuse lighting
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.0);
+    keyLight.position.set(3, 4, 5);
     scene.add(keyLight);
 
-    const rimLight = new THREE.DirectionalLight(0x88ccff, 0.8);
-    rimLight.position.set(-2, 1, -3);
+    const rimLight = new THREE.DirectionalLight(0xaaccff, 1.2);
+    rimLight.position.set(-3, 2, -4);
     scene.add(rimLight);
 
-    const fillLight = new THREE.DirectionalLight(0xffbb88, 0.4);
-    fillLight.position.set(-1, -2, 2);
+    const fillLight = new THREE.DirectionalLight(0xffffff, 0.6);
+    fillLight.position.set(-2, -3, 3);
     scene.add(fillLight);
 
-    const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
     scene.add(ambientLight);
+
+    // Add hemisphere light for better overall illumination
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0xcccccc, 0.8);
+    scene.add(hemiLight);
 
     // Store references
     sceneRef.current = {
@@ -209,70 +216,55 @@ export function PillScene({ className }: PillSceneProps) {
     const group = new THREE.Group();
 
     // Capsule geometry (two hemispheres + cylinder)
-    const radius = 0.5;
-    const height = 1.5;
+    const radius = 0.6;
+    const height = 1.8;
 
-    // Top hemisphere
-    const topGeometry = new THREE.SphereGeometry(radius, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+    // Top hemisphere (Light cyan/blue)
+    const topGeometry = new THREE.SphereGeometry(radius, 64, 32, 0, Math.PI * 2, 0, Math.PI / 2);
     const topMaterial = new THREE.MeshPhysicalMaterial({
-      color: 0xffffff,
-      metalness: 0.1,
-      roughness: 0.2,
-      transmission: 0.95,
-      thickness: 0.5,
+      color: 0x7dd3fc, // Light cyan
+      metalness: 0.0,
+      roughness: 0.15,
       clearcoat: 1.0,
-      clearcoatRoughness: 0.1,
-      transparent: true,
-      opacity: 0.8,
-      side: THREE.DoubleSide,
+      clearcoatRoughness: 0.05,
+      reflectivity: 0.8,
     });
     const topHemisphere = new THREE.Mesh(topGeometry, topMaterial);
     topHemisphere.position.y = height / 2;
     group.add(topHemisphere);
 
-    // Bottom hemisphere
-    const bottomGeometry = new THREE.SphereGeometry(radius, 32, 16, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2);
+    // Bottom hemisphere (Darker teal)
+    const bottomGeometry = new THREE.SphereGeometry(radius, 64, 32, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2);
     const bottomMaterial = new THREE.MeshPhysicalMaterial({
-      color: 0xffffff,
-      metalness: 0.1,
-      roughness: 0.25,
-      transmission: 0.9,
-      thickness: 0.5,
+      color: 0x06b6d4, // Darker cyan/teal
+      metalness: 0.0,
+      roughness: 0.15,
       clearcoat: 1.0,
-      clearcoatRoughness: 0.15,
-      transparent: true,
-      opacity: 0.75,
-      side: THREE.DoubleSide,
+      clearcoatRoughness: 0.05,
+      reflectivity: 0.8,
     });
     const bottomHemisphere = new THREE.Mesh(bottomGeometry, bottomMaterial);
     bottomHemisphere.position.y = -height / 2;
     group.add(bottomHemisphere);
 
-    // Middle cylinder
-    const cylinderGeometry = new THREE.CylinderGeometry(radius, radius, height, 32);
-    const cylinderMaterial = new THREE.MeshPhysicalMaterial({
-      color: 0xffffff,
-      metalness: 0.1,
-      roughness: 0.22,
-      transmission: 0.92,
-      thickness: 0.5,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.12,
-      transparent: true,
-      opacity: 0.77,
-      side: THREE.DoubleSide,
-    });
-    const cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
-    group.add(cylinder);
+    // Top cylinder (Light cyan)
+    const topCylinderGeometry = new THREE.CylinderGeometry(radius, radius, height / 2, 64);
+    const topCylinder = new THREE.Mesh(topCylinderGeometry, topMaterial);
+    topCylinder.position.y = height / 4;
+    group.add(topCylinder);
 
-    // Seam line
-    const seamGeometry = new THREE.TorusGeometry(radius, 0.01, 16, 100);
+    // Bottom cylinder (Darker teal)
+    const bottomCylinderGeometry = new THREE.CylinderGeometry(radius, radius, height / 2, 64);
+    const bottomCylinder = new THREE.Mesh(bottomCylinderGeometry, bottomMaterial);
+    bottomCylinder.position.y = -height / 4;
+    group.add(bottomCylinder);
+
+    // Seam line (subtle)
+    const seamGeometry = new THREE.TorusGeometry(radius, 0.008, 16, 100);
     const seamMaterial = new THREE.MeshStandardMaterial({
-      color: 0xcccccc,
-      metalness: 0.8,
-      roughness: 0.2,
-      transparent: true,
-      opacity: 0.3,
+      color: 0x0891b2,
+      metalness: 0.3,
+      roughness: 0.4,
     });
     const seam = new THREE.Mesh(seamGeometry, seamMaterial);
     seam.rotation.x = Math.PI / 2;

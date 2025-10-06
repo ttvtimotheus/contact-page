@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { SlideButton } from "@/components/ui/slide-button";
 import { useToast } from "@/hooks/use-toast";
 import { contactFormSchema, type ContactFormData } from "@/lib/validations";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,6 +24,7 @@ import { useForm } from "react-hook-form";
 export default function ContactPage() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
   const {
     register,
@@ -38,6 +40,7 @@ export default function ContactPage() {
 
   const onSubmit = async (data: ContactFormData) => {
     setIsSubmitting(true);
+    setSubmitStatus("loading");
 
     try {
       const response = await fetch("/api/contact", {
@@ -51,25 +54,37 @@ export default function ContactPage() {
       const result = await response.json();
 
       if (response.ok) {
+        setSubmitStatus("success");
         toast({
           title: "Message sent successfully!",
           description: result.message,
         });
-        reset();
+        setTimeout(() => {
+          reset();
+          setSubmitStatus("idle");
+        }, 2000);
       } else {
+        setSubmitStatus("error");
         toast({
           title: "Failed to send message",
           description: result.error || "Please try again later.",
           variant: "destructive",
         });
+        setTimeout(() => {
+          setSubmitStatus("idle");
+        }, 2000);
       }
     } catch (error) {
       console.error("Form submission error:", error);
+      setSubmitStatus("error");
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
+      setTimeout(() => {
+        setSubmitStatus("idle");
+      }, 2000);
     } finally {
       setIsSubmitting(false);
     }
@@ -233,7 +248,7 @@ export default function ContactPage() {
 
             <Card>
               <CardContent className="pt-6">
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
                   {/* Department Selection */}
                   <div className="space-y-2">
                     <Label htmlFor="department">Department</Label>
@@ -360,15 +375,14 @@ export default function ContactPage() {
                   </div>
 
                   {/* Submit Button */}
-                  <Button
-                    type="submit"
-                    size="lg"
-                    className="w-full"
-                    disabled={isSubmitting}
-                    aria-label="Send message"
-                  >
-                    {isSubmitting ? "Sending..." : "Send message"}
-                  </Button>
+                  <div className="flex justify-center">
+                    <SlideButton
+                      onSubmit={handleSubmit(onSubmit)}
+                      status={submitStatus}
+                      disabled={isSubmitting}
+                      aria-label="Slide to send message"
+                    />
+                  </div>
 
                   {/* Privacy Notice */}
                   <div className="text-xs text-center text-muted-foreground">
