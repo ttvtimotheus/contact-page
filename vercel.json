@@ -1,0 +1,12 @@
+{
+  "buildCommand": "npm run build",
+  "framework": "nextjs",
+  "installCommand": "npm install",
+  "env": {
+    "RESEND_API_KEY": "@resend_api_key",
+    "SALES_EMAIL": "sales@clarik.app",
+    "SUPPORT_EMAIL": "support@clarik.app",
+    "PRESS_EMAIL": "press@clarik.app",
+    "FROM_EMAIL": "noreply@clarik.app"
+  }
+}
