@@ -77,4 +77,4 @@ Deploy to Vercel:
 
 ## License
 
-Proprietary - Clarik
+Proprietary - Clarik ( By Estopia )
